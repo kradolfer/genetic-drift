@@ -1,0 +1,91 @@
+# Genetic Drift Simulation
+
+Author: David Kradolfer, May 2017
+
+This script defines a fuction to simulate genetic drift. Genetic drift describes the random fluctuation of allele frequencies in a finite size population. The frequency of ONE gene with TWO allels (0 and 1) is described. It is assuemed that organisms are HAPLOID (have only 1 allele per gene) and mate randomly. This means that if e.g. the frequency of allele 1 is 70%, then each individual in the next generation has a probability of 70% to inherit allele 1, and 30% to inherit allele 0. In small populations, genetic drift can cause alleles to disappear completely and thereby reduce genetic variation. This can be simulated using the function visGenDrift and setting the different parameters:
+
+N = the population size (remains constant during the simulation)
+
+numGen = the number of generations studied
+
+numRep = the number of replicate simulations (maximum of 11)
+
+p0 = initial frequency of allele 1
+
+
+Part 1: Defining the function:
+```{r}
+visGenDrift = function (N, numGen, numRep, p0) {
+
+  # create an empty matrix to store the frequency of allele 1 for each generation and each replicate
+  # this table will be used to plot the results
+  # the initial frequencies p0 are not stored or plotted
+  Allel_freq = matrix (nrow = numGen, ncol = numRep)
+  
+  # the function has 2 nested loops: The first to loop over the replicates, the second to loop over the generations of a replicate
+  Rep = 1 # set replicate counter to 1
+  while (Rep < numRep+1) {
+  
+    # create an empty matrix for the current replicate to fill in the alleles of each individual:
+    Allel_Table = matrix (nrow = N, ncol = numGen)
+    G = 0 # reset the generation counter to 0
+    P = p0 # reset allele 1 frequency P to p0
+    
+      while (G < numGen) {
+  
+        # Calculate the alleles of generation G+1 (using the frequency of allele 1 in generation G)
+        Allel_Table[,G+1] = rbinom (N,1,P)
+        
+        # Calculate the new allele 1 frequency
+        P = length (which (Allel_Table[,G+1] == 1))/N
+        
+        G = G+1 # increase the generation counter
+        
+        # store the allele frequency of the current generation and replicate
+        Allel_freq[G,Rep] = P
+  
+        }  
+    
+    Rep = Rep+1 # increase the replicate counter
+    
+  }
+ 
+  # --------------------- Plot the allele frequencies ------------------------------
+  
+  # select as many colors as there are replicates
+  # 11 colors in ColorBrewer Spectral, therefore max. of 11 replicates
+  library (RColorBrewer)
+  cols = brewer.pal (n = Rep, name = "Spectral")
+
+  Title = paste("Genetic drift - N = " , N)
+  
+  # plot the first replicate, addiditional replicates added by loop below:
+  plot (Allel_freq[,1], type="l" ,ylim=c(0:1), main=Title, xlab="# of generations", ylab="frequency of allele 1", yaxt = 'n', col=cols)
+  axis(2,las=2, at=c(0,p0,1)) # add the y axis tick marks
+  abline(h=p0, lty=2) # add a horizontal line indicating p0
+  
+  Rep = 2
+  while (Rep < numRep+1) {
+    lines(Allel_freq[,Rep], col=cols[Rep])
+    Rep = Rep+1
+  }  
+}
+```
+
+
+Part 2: Using the function to create a pdf with the plots:
+```{r}
+pdf(file=".\\Genetic_drift_plots.pdf") # file name and folder
+
+# create a layout with 3 panes
+layout_3 = layout(matrix(c(1,2,3), 3, 1))
+
+# add 3 simulations with different population sizes and allele frequencies to the panes:
+visGenDrift(100, 400, 10, 0.5)
+visGenDrift(500, 400, 10, 0.2)
+visGenDrift(5000, 400, 10, 0.7)
+
+dev.off() # close the pdf
+```
+
+A sample of a pdf created using this script is in the same folder.
