@@ -1,5 +1,5 @@
 # genetic-drift
-A function to simulate genetic drift in a population
+A function to simulate genetic drift in a population using R.
 
 Author: David Kradolfer, May 2017
 
